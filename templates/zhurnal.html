@@ -1,0 +1,31 @@
+{% extends 'base.html' %}
+
+{% block content %}
+{{ super() }}
+<p>Содержимое страницы "журнал"</p>
+<table class="table">
+  <thead>
+    <tr>
+      <th scope="col"></th>
+      <th scope="col">Дата</th>
+      <th scope="col">ФИО клиента</th>
+      <th scope="col">Марка авто</th>
+      <th scope="col">Номер авто</th>
+      <th scope="col">Причина обращения</th>
+      <!-- Добавьте другие заголовки столбцов здесь, если нужно -->
+    </tr>
+  </thead>
+  <tbody>
+    {% for row in log %}
+    <tr>
+      <th scope="row">{{ loop.index }}</th> <!-- Используем loop.index для нумерации строк -->
+      <td>{{ row.data_order }}</td>
+      <td>{{ row.name_customer }}</td>
+      <td>{{ row.brand_car }}</td>
+      <td>{{ row.number_car }}</td>
+      <td>{{ row.text_order }}</td>
+    </tr>
+    {% endfor %}
+  </tbody>
+</table>
+{% endblock %}
