@@ -3,8 +3,8 @@
 {% block content %}
 {{ super() }}
 
-<h2>Журнал клиентов</h2>
-<div style="margin-bottom: 20px;"></div> <!-- Пространство снизу -->
+<h2>Журнал заказов</h2>
+<div style="margin-bottom: 20px;"></div> <!-- Пространство -->
 
 <!-- Форма поиска -->
 <form class="d-flex" role="search">
@@ -16,7 +16,7 @@
   <thead>
     <tr>
       <th scope="col"></th>
-      <th scope="col">Дата</th>
+      <th scope="col">Дата заказа</th>
       <th scope="col">ФИО клиента</th>
       <th scope="col">Марка авто</th>
       <th scope="col">Номер авто</th>
@@ -61,7 +61,7 @@
 <script>
   $(document).ready(function() {
     var currentPage = 1;
-    var rowsPerPage = 2; // Количество строк на одной странице
+    var rowsPerPage = 12; // Количество строк на одной странице
 
     // Показать нужные строки при загрузке страницы
     showRows(currentPage, rowsPerPage);
@@ -110,6 +110,5 @@
     }
   });
 </script>
-
 
 {% endblock %}

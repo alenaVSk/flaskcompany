@@ -49,13 +49,24 @@ def index():
 def showZhurnal():
     db = get_db()
     dbase = FDataBase(db)
-    return render_template("zhurnal.html", title="журнал", log=dbase.getLog())
+    return render_template("zhurnal.html", title="Журнал", log=dbase.getLog())
 
 
-@app.route("/aaa")
-def aaa():
+@app.route("/add_customer", methods=["POST", "GET"])
+def addCustomer():
     db = get_db()
-    return render_template("aaa.html", title='aaa')
+    dbase = FDataBase(db)
+
+    if request.method == "POST":
+
+        res = dbase.addCustomer(request.form['data_order'], request.form['name_customer'], request.form['brand_car'],
+                                request.form['number_car'], request.form['text_order'],)
+        if not res:
+            flash('Ошибка добавления', category='error')
+        else:
+            flash('Запись добавлена успешно', category='success')
+
+    return render_template('add_customer.html', title="Добавление записи в журнал")
 
 
 @app.teardown_appcontext
