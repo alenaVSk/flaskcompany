@@ -27,3 +27,41 @@ class FDataBase:
             return False
 
         return True
+
+    def getStock(self):
+        sql = '''SELECT 
+                    sp.name AS name_total,
+                    SUM(sp.quantity) - COALESCE(SUM(sm.quantity), 0) AS quantity_total,
+	                sp.price_unit AS price_unit_total
+                 FROM 
+                    stock_plus sp
+                    LEFT JOIN 
+                    stock_minus sm ON sp.name = sm.name AND sp.price_unit = sm.price_unit
+                 GROUP BY 
+                    sp.name, sp.price_unit;'''
+        try:
+            self.__cur.execute(sql)
+            res = self.__cur.fetchall()
+            # Преобразование каждой строки в список значений
+            stock_list = [dict(row) for row in res]
+            if stock_list:
+                return stock_list
+            print(stock_list)
+        except sqlite3.Error as e:
+            print("Ошибка добавления статьи в БД " + str(e))
+        return []
+
+    def addStock(self, name, quantity, price_unit):
+        try:
+            self.__cur.execute("""
+                INSERT INTO stock_plus (name, quantity, price_unit) 
+                VALUES (?, ?, ?)
+                ON CONFLICT(name, price_unit) DO UPDATE 
+                SET quantity = quantity + EXCLUDED.quantity;
+                """, (name, quantity, price_unit))
+            self.__db.commit()
+        except sqlite3.Error as e:
+            print("Ошибка добавления статьи в БД " + str(e))
+            return False
+
+        return True

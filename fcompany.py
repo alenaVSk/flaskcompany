@@ -39,24 +39,27 @@ def get_db():
     return g.link_db
 
 
+dbase = None
+@app.before_request
+def before_request():
+    """Установление соединения с БД перед выполнением запроса"""
+    global dbase
+    db = get_db()
+    dbase = FDataBase(db)
+
+
 @app.route("/")
 def index():
-    db = get_db()
     return render_template("index.html")
 
 
 @app.route("/zhurnal")
 def showZhurnal():
-    db = get_db()
-    dbase = FDataBase(db)
     return render_template("zhurnal.html", title="Журнал", log=dbase.getLog())
 
 
 @app.route("/add_customer", methods=["POST", "GET"])
 def addCustomer():
-    db = get_db()
-    dbase = FDataBase(db)
-
     if request.method == "POST":
 
         res = dbase.addCustomer(request.form['data_order'], request.form['name_customer'], request.form['brand_car'],
@@ -67,6 +70,24 @@ def addCustomer():
             flash('Запись добавлена успешно', category='success')
 
     return render_template('add_customer.html', title="Добавление записи в журнал")
+
+
+@app.route("/stock")
+def showStock():
+    return render_template("stock.html", title="Склад материалов", stock=dbase.getStock())
+
+
+@app.route("/add_stock", methods=["POST", "GET"])
+def addStock():
+    if request.method == "POST":
+
+        res = dbase.addStock(request.form['name'], request.form['quantity'], request.form['price_unit'])
+        if not res:
+            flash('Ошибка добавления', category='error')
+        else:
+            flash('Запись добавлена успешно', category='success')
+
+    return render_template('add_stock.html', title="Добавление материалов на склад")
 
 
 @app.teardown_appcontext
