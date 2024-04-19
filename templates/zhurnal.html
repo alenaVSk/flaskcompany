@@ -32,6 +32,16 @@
       <td>{{ row.brand_car }}</td>
       <td>{{ row.number_car }}</td>
       <td>{{ row.text_order }}</td>
+      <td>
+          <a href="/edit_entry/{{ row.id }}" class="btn btn-outline-primary btn-sm">Изменить</a>
+      </td>
+
+      <td>
+        <!-- форма кнопки "Удалить", она отправляет POST-запрос на сервер с идентификатором записи, которую нужно удалить.-->
+        <form action="/delete_entry/{{ row.id }}" method="post">
+            <button type="submit" class="btn btn-outline-danger btn-sm">Удалить</button>
+        </form>
+      </td>
     </tr>
     {% endfor %}
   </tbody>

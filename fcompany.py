@@ -1,6 +1,6 @@
 import sqlite3
 import os
-from flask import Flask, render_template, url_for, request, g, flash, abort
+from flask import Flask, render_template, url_for, request, g, flash, abort, redirect
 from FDataBase import FDataBase
 
 # конфигурация
@@ -70,6 +70,37 @@ def addCustomer():
             flash('Запись добавлена успешно', category='success')
 
     return render_template('add_customer.html', title="Добавление записи в журнал")
+
+
+# Маршрут Flask для удаления записи в "Журнал"
+@app.route('/delete_entry/<int:entry_id>', methods=['POST'])
+def delete_entry(entry_id):
+    try:
+        dbase.delete_entry(entry_id)
+        flash('Запись успешно удалена', 'success')
+    except:
+        flash('Ошибка удаления записи', 'danger')
+    return redirect(url_for('showZhurnal'))
+
+
+# Маршрут Flask для страницы редактирования записи
+@app.route('/edit_entry/<int:entry_id>', methods=['GET'])
+def edit_entry(entry_id):
+    entry_data = dbase.get_entry(entry_id)
+    # print(entry_data)  # Проверка, получены ли данные
+    return render_template('edit_entry.html', title="Редактировать", entry_data=entry_data)
+
+
+# Маршрут Flask для сохранения изменений
+@app.route('/save_entry/<int:entry_id>', methods=['POST'])
+def save_entry(entry_id):
+    data_order = request.form['data_order']
+    name_customer = request.form['name_customer']
+    brand_car = request.form['brand_car']
+    number_car = request.form['number_car']
+    text_order = request.form['text_order']
+    dbase.update_entry(entry_id, data_order, name_customer, brand_car, number_car, text_order)
+    return redirect(url_for('showZhurnal'))
 
 
 @app.route("/stock")

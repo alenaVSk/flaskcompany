@@ -28,6 +28,39 @@ class FDataBase:
 
         return True
 
+    def delete_entry(self, entry_id):
+        sql = '''DELETE FROM log WHERE id = ?'''
+        try:
+            self.__cur.execute(sql, (entry_id,))
+            self.__db.commit()
+        except Exception as e:
+            print("Ошибка удаления из БД:", str(e))
+            self.__db.rollback()
+
+    def get_entry(self, entry_id):
+        sql = '''SELECT * FROM log WHERE id = ?'''
+        try:
+            self.__cur.execute(sql, (entry_id,))
+            res = self.__cur.fetchone()
+            if res:
+                return dict(res)
+        except Exception as e:
+            print("Ошибка при получении записи из БД:", str(e))
+        return None
+
+
+    # Метод для обновления данных записи
+    def update_entry(self, entry_id, data_order, name_customer, brand_car, number_car, text_order):
+        try:
+            sql = '''UPDATE log 
+                     SET data_order = ?, name_customer = ?, brand_car = ?, number_car = ?, text_order = ? 
+                     WHERE id = ?'''
+            self.__cur.execute(sql, (data_order, name_customer, brand_car, number_car, text_order, entry_id))
+            self.__db.commit()
+        except Exception as e:
+            print("Ошибка при обновлении записи в БД:", str(e))
+            self.__db.rollback()
+
     def getStock(self):
         sql = '''SELECT 
                     sp.name AS name_total,
@@ -46,7 +79,6 @@ class FDataBase:
             stock_list = [dict(row) for row in res]
             if stock_list:
                 return stock_list
-            print(stock_list)
         except sqlite3.Error as e:
             print("Ошибка добавления статьи в БД " + str(e))
         return []
