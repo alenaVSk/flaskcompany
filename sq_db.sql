@@ -15,6 +15,7 @@ quantity integer NOT NULL,
 price_unit integer NOT NULL
 );
 
+
 CREATE TABLE IF NOT EXISTS stock_minus (
 id integer PRIMARY KEY AUTOINCREMENT,
 name text NOT NULL,
@@ -22,3 +23,9 @@ quantity integer NOT NULL,
 price_unit integer NOT NULL
 );
 
+
+CREATE TABLE IF NOT EXISTS employees (
+id integer PRIMARY KEY AUTOINCREMENT,
+name text NOT NULL,
+profession text NOT NULL
+);

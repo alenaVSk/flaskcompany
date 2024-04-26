@@ -28,6 +28,7 @@ class FDataBase:
 
         return True
 
+
     def delete_entry(self, entry_id):
         sql = '''DELETE FROM log WHERE id = ?'''
         try:
@@ -36,6 +37,7 @@ class FDataBase:
         except Exception as e:
             print("Ошибка удаления из БД:", str(e))
             self.__db.rollback()
+
 
     def get_entry(self, entry_id):
         sql = '''SELECT * FROM log WHERE id = ?'''
@@ -49,7 +51,7 @@ class FDataBase:
         return None
 
 
-    # Метод для обновления данных записи
+    # Метод для обновления данных в Журнале
     def update_entry(self, entry_id, data_order, name_customer, brand_car, number_car, text_order):
         try:
             sql = '''UPDATE log 
@@ -61,6 +63,7 @@ class FDataBase:
             print("Ошибка при обновлении записи в БД:", str(e))
             self.__db.rollback()
 
+    # Отображение Склада (stock_plus - stock_minus)
     def getStock(self):
         sql = '''SELECT 
                     sp.name AS name_total,
@@ -97,3 +100,62 @@ class FDataBase:
             return False
 
         return True
+
+    # Список сотрудников
+    def getEmployees(self):
+        sql = '''SELECT * FROM employees'''
+        try:
+            self.__cur.execute(sql)
+            res = self.__cur.fetchall()
+            # Преобразование каждой строки в список значений
+            employees_list = [dict(row) for row in res]
+            if employees_list: return employees_list
+        except:
+            print("Ошибка чтения из БД")
+        return []
+
+    # Добавление сотрудника
+    def addEmployees(self, name, profession):
+        try:
+            self.__cur.execute("INSERT INTO employees VALUES(NULL, ?, ?)", (name, profession))
+            self.__db.commit()
+        except sqlite3.Error as e:
+            print("Ошибка добавления статьи в БД " + str(e))
+            return False
+
+        return True
+
+    # Удаление из списка сотрудников
+    def delete_entry_employees(self, entry_id):
+        sql = '''DELETE FROM employees WHERE id = ?'''
+        try:
+            self.__cur.execute(sql, (entry_id,))
+            self.__db.commit()
+        except Exception as e:
+            print("Ошибка удаления из БД:", str(e))
+            self.__db.rollback()
+
+   # Редактирование списка сотрудников
+    def get_entry_employees(self, entry_id):
+        sql = '''SELECT * FROM employees WHERE id = ?'''
+        try:
+            self.__cur.execute(sql, (entry_id,))
+            res = self.__cur.fetchone()
+            if res:
+                return dict(res)
+        except Exception as e:
+            print("Ошибка при получении записи из БД:", str(e))
+        return None
+
+
+    # Метод для обновления данных о сотрудниках
+    def update_entry_employees(self, entry_id, name, profession):
+        try:
+            sql = '''UPDATE employees
+                     SET name = ?, profession = ? 
+                     WHERE id = ?'''
+            self.__cur.execute(sql, (name, profession, entry_id))
+            self.__db.commit()
+        except Exception as e:
+            print("Ошибка при обновлении записи в БД:", str(e))
+            self.__db.rollback()

@@ -72,7 +72,7 @@ def addCustomer():
     return render_template('add_customer.html', title="Добавление записи в журнал")
 
 
-# Маршрут Flask для удаления записи в "Журнал"
+# Маршрут для удаления записи в "Журнал"
 @app.route('/delete_entry/<int:entry_id>', methods=['POST'])
 def delete_entry(entry_id):
     try:
@@ -83,7 +83,7 @@ def delete_entry(entry_id):
     return redirect(url_for('showZhurnal'))
 
 
-# Маршрут Flask для страницы редактирования записи
+# Маршрут для страницы редактирования записи записи в "Журнал"
 @app.route('/edit_entry/<int:entry_id>', methods=['GET'])
 def edit_entry(entry_id):
     entry_data = dbase.get_entry(entry_id)
@@ -91,7 +91,7 @@ def edit_entry(entry_id):
     return render_template('edit_entry.html', title="Редактировать", entry_data=entry_data)
 
 
-# Маршрут Flask для сохранения изменений
+# Маршрут для сохранения изменений
 @app.route('/save_entry/<int:entry_id>', methods=['POST'])
 def save_entry(entry_id):
     data_order = request.form['data_order']
@@ -119,6 +119,52 @@ def addStock():
             flash('Запись добавлена успешно', category='success')
 
     return render_template('add_stock.html', title="Добавление материалов на склад")
+
+
+@app.route("/employees")
+def showEmployees():
+    return render_template("employees.html", title="Сотрудники", employees=dbase.getEmployees())
+
+
+@app.route("/add_employees", methods=["POST", "GET"])
+def addEmployees():
+    if request.method == "POST":
+
+        res = dbase.addEmployees(request.form['name'], request.form['profession'])
+        if not res:
+            flash('Ошибка добавления', category='error')
+        else:
+            flash('Запись добавлена успешно', category='success')
+
+    return render_template('add_employees.html', title="Добавление сотрудника")
+
+
+# Маршрут для удаления записи в "Сотрудники"
+@app.route('/delete_entry_employees/<int:entry_id>', methods=['POST'])
+def delete_entry_employees(entry_id):
+    try:
+        dbase.delete_entry_employees(entry_id)
+        flash('Запись успешно удалена', 'success')
+    except:
+        flash('Ошибка удаления записи', 'danger')
+    return redirect(url_for('showEmployees'))
+
+
+# Маршрут для страницы редактирования записи записи в "Сотрудники"
+@app.route('/edit_entry_employees/<int:entry_id>', methods=['GET'])
+def edit_entry_employees(entry_id):
+    entry_data = dbase.get_entry_employees(entry_id)
+    # print(entry_data)  # Проверка, получены ли данные
+    return render_template('edit_entry_employees.html', title="Редактировать", entry_data=entry_data)
+
+
+# Маршрут для сохранения изменений  в "Сотрудники"
+@app.route('/save_entry_employees/<int:entry_id>', methods=['POST'])
+def save_entry_employees(entry_id):
+    name = request.form['name']
+    profession = request.form['profession']
+    dbase.update_entry_employees(entry_id, name, profession)
+    return redirect(url_for('showEmployees'))
 
 
 @app.teardown_appcontext
