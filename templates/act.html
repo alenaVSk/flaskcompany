@@ -1,0 +1,59 @@
+{% extends 'base.html' %}
+
+{% block content %}
+{{ super() }}
+
+<head>
+ <title>Bootstrap Table Form</title>
+    <link rel=stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css">
+</head>
+<body>
+    <h2>Добавить данные в акт выполненных работ</h2>
+    <form action="{{url_for('addAct_foreign_key')}}" method="POST">
+        <table id="myTable" class="table table-striped">
+            <thead>
+                <tr>
+                    <th scope="col">Дата заявки</th>
+                    <th scope="col">Дата акта</th>
+                    <th scope="col">Номер машины</th>
+                    <th scope="col">Материалы</th>
+                    <th scope="col">Стоимость 1ед.</th>
+                    <th scope="col">Количество материалов</th>
+                    <th scope="col">Наименование работ</th>
+                    <th scope="col">Стоимость работ</th>
+                    <th scope="col">Работу выполнил</th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr>
+                    <td><input type="text" name="data_order"  class="form-control"></td>
+                    <td><input type="text" name="data_act" class="form-control"></td>
+                    <td><input type="text" name="number_car" class="form-control"></td>
+                    <td><input type="text" name="materials[]" class="form-control"></td>
+                    <td><input type="number" name="price_materials[]" class="form-control"></td>
+                    <td><input type="number" name="quantity[]" class="form-control"></td>
+                    <td><input type="text" name="work_completed[]" class="form-control"></td>
+                    <td><input type="number" name="name_work[]" class="form-control"></td>
+                    <td><input type="text" name="price_work[]" class="form-control"></td>
+                </tr>
+            </tbody>
+        </table>
+        <button type="button" class="btn btn-primary" onclick="addRow()">Добавить строку</button>
+        <button type="submit" class="btn btn-success">Отправить</button>
+    </form>
+
+    <script>
+        function addRow() {
+            var table = document.getElementById("myTable").getElementsByTagName('tbody')[0];
+            var newRow = table.insertRow(table.rows.length);
+            var cols = 9; // Количество колонок в таблице
+            for (var i = 0; i < cols; i++) {
+                var newCell = newRow.insertCell(i);
+                newCell.innerHTML = '<input type="text" class="form-control" name="data[]">';
+            }
+        }
+    </script>
+
+</body>
+
+{% endblock %}

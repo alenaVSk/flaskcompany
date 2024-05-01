@@ -167,6 +167,72 @@ def save_entry_employees(entry_id):
     return redirect(url_for('showEmployees'))
 
 
+# Акт выполненных работ/ форма для составления
+@app.route("/act_form", methods=["GET", "POST"])
+def addAct_foreign_key():
+    if request.method == "GET":
+        # Логика для отображения формы
+        return render_template('act.html', title="Составление акта")
+    elif request.method == "POST":
+        data_order = request.form.get('data_order')
+        data_act = request.form.get('data_act')
+        number_car = request.form.get('number_car')
+
+        materials = request.form.getlist('materials[]')
+        price_materials = request.form.getlist('price_materials[]')
+        quantity = request.form.getlist('quantity[]')
+        work_completed = request.form.getlist('work_completed[]')
+        name_work = request.form.getlist('name_work[]')
+        price_work = request.form.getlist('price_work[]')
+
+        print("Содержимое request.form:", request.form)
+        print("Содержимое data_order:", data_order)
+        print("Содержимое data_act:", data_act)
+        print("Содержимое number_car:", number_car)
+        print("Содержимое materials:", materials)
+        print("Содержимое price_materials:", price_materials)
+        print("Содержимое quantity:", quantity)
+        print("Содержимое work_completed:", work_completed)
+        print("Содержимое name_work:", name_work)
+        print("Содержимое price_work:", price_work)
+
+        try:
+            dbase.addAct_foreign_key(data_order, data_act, number_car, materials, price_materials, quantity, work_completed, name_work, price_work)
+            flash('Запись успешно удалена', 'success')
+        except:
+            flash('Ошибка удаления записи', 'danger')
+
+        #return render_template('act.html', title="Составление акта")
+        return redirect(url_for('addAct_foreign_key'))
+
+""""
+# Акт выполненных работ / форма для составления
+@app.route("/act_form", methods=["POST"])
+def addAct_foreign_key():
+    data = request.form.getlist('data[]')
+
+    print("Содержимое request.form:", request.form)
+    print("Содержимое data:", data)
+
+    data_order = data[0]
+    data_act = data[1]
+    number_car = data[2]
+    materials = data[3::9]
+    price_materials = data[4::9]
+    quantity = data[5::9]
+    work_completed = data[6::9]
+    name_work = data[7::9]
+    price_work = data[8::9]
+
+    try:
+        dbase.addAct_foreign_key(data_order, data_act, number_car, materials, price_materials, quantity, work_completed, name_work, price_work)
+        flash('Запись успешно удалена', 'success')
+    except:
+        flash('Ошибка удаления записи', 'danger')
+
+    return render_template('act.html', title="Составление акта")
+"""
+
 @app.teardown_appcontext
 def close_db(error):
     '''Закрываем соединение с БД, если оно было установлено'''

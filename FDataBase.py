@@ -159,3 +159,40 @@ class FDataBase:
         except Exception as e:
             print("Ошибка при обновлении записи в БД:", str(e))
             self.__db.rollback()
+
+        # Добавление данных в акт вып работ
+
+    def addAct_foreign_key(self, data_order, data_act, number_car, materials, price_materials, quantity, work_completed,
+                           name_work, price_work):
+        try:
+            # Добавление данных в таблицу act_foreign_key
+            self.__cur.execute("INSERT INTO act_foreign_key (data_order, data_act, number_car) VALUES (?, ?, ?)",
+                               (data_order, data_act, number_car))
+
+            # Получение автоматически сгенерированного act_id
+            act_id = self.__cur.lastrowid
+
+            # Добавление данных в таблицу act_materials и stock_minus
+            for i in range(len(materials)):
+                # Добавление данных в таблицу act_materials
+                self.__cur.execute("INSERT INTO act_materials (act_id, materials, price_materials, quantity) VALUES (?, ?, ?, ?)",
+                                   (act_id, materials[i], price_materials[i], quantity[i]))
+
+                # Добавление данных в таблицу stock_minus
+                self.__cur.execute("INSERT INTO stock_minus (name, price_unit, quantity) VALUES (?, ?, ?)",
+                                   (materials[i], price_materials[i], quantity[i]))
+
+            # Добавление данных в таблицу act_work
+            for i in range(len(work_completed)):
+                self.__cur.execute(
+                    "INSERT INTO act_work (act_id, work_completed, name_work, price_work) VALUES (?, ?, ?, ?)",
+                    (act_id, work_completed[i], name_work[i], price_work[i]))
+
+            # Применение изменений к базе данных
+            self.__db.commit()
+        except sqlite3.Error as e:
+            print("Ошибка добавления данных в БД: " + str(e))
+            self.__db.rollback()
+            return False
+
+        return True
