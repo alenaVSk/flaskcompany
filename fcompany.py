@@ -2,6 +2,7 @@ import sqlite3
 import os
 from flask import Flask, render_template, url_for, request, g, flash, abort, redirect
 from FDataBase import FDataBase
+from row_data import process_row_data
 
 # конфигурация
 DATABASE = '/tmp/fcompany.db'  # путь к БД
@@ -167,71 +168,72 @@ def save_entry_employees(entry_id):
     return redirect(url_for('showEmployees'))
 
 
-# Акт выполненных работ/ форма для составления
+
+# Акт выполненных работ/ обработчик запросов для маршрута "/act_form" с методами GET и POST.
 @app.route("/act_form", methods=["GET", "POST"])
 def addAct_foreign_key():
     if request.method == "GET":
-        # Логика для отображения формы
+        # Логика для отображения формы. если  был выполнен HTTP-запрос GET. Если это так, он рендерит HTML-шаблон 'act.html' и отправляет его пользователю.
         return render_template('act.html', title="Составление акта")
-    elif request.method == "POST":
+
+    elif request.method == "POST":  # Если был выполнен HTTP-запрос POST, то:
+        # Получает значения из формы, используя request.form.get() для полей data_order, data_act, и number_car.
         data_order = request.form.get('data_order')
         data_act = request.form.get('data_act')
         number_car = request.form.get('number_car')
 
-        materials = request.form.getlist('materials[]')
-        price_materials = request.form.getlist('price_materials[]')
-        quantity = request.form.getlist('quantity[]')
-        work_completed = request.form.getlist('work_completed[]')
-        name_work = request.form.getlist('name_work[]')
-        price_work = request.form.getlist('price_work[]')
+        # Создает пустой список rows для хранения данных из строк таблицы.
+        rows = []
 
-        print("Содержимое request.form:", request.form)
-        print("Содержимое data_order:", data_order)
-        print("Содержимое data_act:", data_act)
-        print("Содержимое number_car:", number_car)
-        print("Содержимое materials:", materials)
-        print("Содержимое price_materials:", price_materials)
-        print("Содержимое quantity:", quantity)
-        print("Содержимое work_completed:", work_completed)
-        print("Содержимое name_work:", name_work)
-        print("Содержимое price_work:", price_work)
+      # Итерация над данными формы. Этот цикл проходит по всем ключам, содержащимся в объекте request.form. Объект
+        # request.form содержит все данные, отправленные в форме POST-запроса.
+        for key in request.form.keys():
+            #Этот условный оператор проверяет, начинается ли текущий ключ с "rows[". Это необходимо, чтобы найти поля формы,
+            # которые содержат данные для динамических строк.
+            if key.startswith('rows['):
+
+                # Эта строка разбивает текущий ключ key на четыре части, используя символ [ в качестве разделителя:
+                #
+                #     aaa - первая часть ключа до [
+                #     row_index - индекс строки, извлеченный из ключа
+                #     column_name - название столбца, извлеченное из ключа
+                #     bbb - оставшаяся часть ключа после ]
+                aaa, row_index, column_name, bbb = key.split('[')
+                print('aaa, row_index, column_name, bbb', aaa, row_index, column_name, bbb)
+                row_index = int(row_index.rstrip(']'))  # Эта строка преобразует извлеченный индекс строки из строки
+                # в целое число, удаляя при этом закрывающую скобку ].
+
+                # Этот цикл while гарантирует, что список rows имеет достаточно элементов (словарей), чтобы соответствовать
+                # максимальному индексу строки, найденному в ключах формы. Если списка rows недостаточно, он будет расширен,
+                # добавляя новые пустые словари.
+                while len(rows) <= row_index:
+                    rows.append({})
+
+                # Эта строка добавляет значение поля формы в соответствующий словарь в списке rows. Ключ словаря формируется
+                # из названия столбца, извлеченного из ключа формы, с удалением закрывающей скобки ]. Значение добавляется
+                # с использованием метода getlist(), который возвращает список значений, если поле формы содержит несколько
+                # значений.
+                rows[row_index][column_name.rstrip(']')] = request.form.getlist(key)
+
+
+        print(rows)  # Теперь строки должны содержать структурированные данные
+        # В целом, этот код обрабатывает динамические строки данных, добавленные пользователем в форму, и строит список
+        # словарей rows, где каждый словарь представляет одну строку данных, а ключи словарей - это названия столбцов.
 
         try:
-            dbase.addAct_foreign_key(data_order, data_act, number_car, materials, price_materials, quantity, work_completed, name_work, price_work)
-            flash('Запись успешно удалена', 'success')
-        except:
-            flash('Ошибка удаления записи', 'danger')
+            # Добавление данных в таблицу act_foreign_key
+            result = dbase.addAct_foreign_key_db(data_order, data_act, number_car, rows)
+            if result:
+                flash('Данные успешно добавлены', 'success')
+                return redirect(url_for('addAct_foreign_key'))
+            else:
+                flash('Ошибка добавления данных', 'danger')
+        except Exception as e:
+            print(f"Ошибка добавления данных в БД: {str(e)}")
+            flash('Ошибка добавления данных', 'danger')
 
-        #return render_template('act.html', title="Составление акта")
-        return redirect(url_for('addAct_foreign_key'))
+    return redirect(url_for('addAct_foreign_key'))
 
-""""
-# Акт выполненных работ / форма для составления
-@app.route("/act_form", methods=["POST"])
-def addAct_foreign_key():
-    data = request.form.getlist('data[]')
-
-    print("Содержимое request.form:", request.form)
-    print("Содержимое data:", data)
-
-    data_order = data[0]
-    data_act = data[1]
-    number_car = data[2]
-    materials = data[3::9]
-    price_materials = data[4::9]
-    quantity = data[5::9]
-    work_completed = data[6::9]
-    name_work = data[7::9]
-    price_work = data[8::9]
-
-    try:
-        dbase.addAct_foreign_key(data_order, data_act, number_car, materials, price_materials, quantity, work_completed, name_work, price_work)
-        flash('Запись успешно удалена', 'success')
-    except:
-        flash('Ошибка удаления записи', 'danger')
-
-    return render_template('act.html', title="Составление акта")
-"""
 
 @app.teardown_appcontext
 def close_db(error):

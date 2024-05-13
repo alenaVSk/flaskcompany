@@ -1,4 +1,5 @@
 import sqlite3
+from row_data import process_row_data
 
 
 class FDataBase:
@@ -63,8 +64,9 @@ class FDataBase:
             print("Ошибка при обновлении записи в БД:", str(e))
             self.__db.rollback()
 
-    # Отображение Склада (stock_plus - stock_minus)
+    # Отображение Склада (stock_plus - stock_minus), 71 строка: SUM(sp.quantity) - COALESCE(SUM(sm.quantity), 0) AS quantity_total,
     def getStock(self):
+        print('getStock quantity, quantity_totalFFF', self)
         sql = '''SELECT 
                     sp.name AS name_total,
                     SUM(sp.quantity) - COALESCE(SUM(sm.quantity), 0) AS quantity_total,
@@ -80,6 +82,7 @@ class FDataBase:
             res = self.__cur.fetchall()
             # Преобразование каждой строки в список значений
             stock_list = [dict(row) for row in res]
+            print('stock_listFFF', stock_list)
             if stock_list:
                 return stock_list
         except sqlite3.Error as e:
@@ -160,6 +163,83 @@ class FDataBase:
             print("Ошибка при обновлении записи в БД:", str(e))
             self.__db.rollback()
 
+
+
+# Добавление данных в акт вып работ
+
+    def addAct_foreign_key_db(self, data_order, data_act, number_car, form):
+        #print(f"data_order: {data_order}, data_act: {data_act}, number_car: {number_car}, form: {form}")
+        try:
+            # Добавление данных в таблицу act_foreign_key
+            self.__cur.execute("INSERT INTO act_foreign_key (data_order, data_act, number_car) VALUES (?, ?, ?)",
+                               (data_order, data_act, number_car))
+
+            # Получение автоматически сгенерированного act_id
+            act_id = self.__cur.lastrowid
+
+            for row_data in form:
+                materials = row_data['materials'][0]
+                price_materials = row_data['price_materials'][0]
+                quantity = row_data['quantity'][0]
+                work_completed = row_data['work_completed'][0]
+                name_work = row_data['name_work'][0]
+                price_work = row_data['price_work'][0]
+
+                sql_act_materials = "INSERT INTO act_materials (act_id, materials, price_materials, quantity) VALUES (?, ?, ?, ?)"
+                self.__cur.execute(sql_act_materials, (act_id, materials, price_materials, quantity))
+
+                sql_stock_minus = "INSERT INTO stock_minus (name, price_unit, quantity) VALUES (?, ?, ?)"
+                #print('ACT sql_stock_minus, (materials, price_materials, quantity)', materials, price_materials, quantity)
+                #print('STOCK stock_minus (name, price_unit, quantity)', materials, price_materials, quantity)
+                self.__cur.execute(sql_stock_minus, (materials, price_materials, quantity))
+
+                sql_act_work = "INSERT INTO act_work (act_id, work_completed, name_work, price_work) VALUES (?, ?, ?, ?)"
+                self.__cur.execute(sql_act_work, (act_id, work_completed, name_work, price_work))
+
+            self.__db.commit()
+            return True
+        except sqlite3.Error as e:
+            print(f"Ошибка добавления данных в БД: {str(e)}")
+            self.__db.rollback()
+            raise Exception(f"Ошибка добавления данных в БД: {str(e)}")
+
+"""
+    def addAct_foreign_key_db(self, data_order, data_act, number_car, form):
+        print(f"data_order: {data_order}, data_act: {data_act}, number_car: {number_car}")
+        try:
+            # Добавление данных в таблицу act_foreign_key
+            self.__cur.execute("INSERT INTO act_foreign_key (data_order, data_act, number_car) VALUES (?, ?, ?)",
+                               (data_order, data_act, number_car))
+
+            # Получение автоматически сгенерированного act_id
+            act_id = self.__cur.lastrowid
+
+            for key in form:
+                if key.startswith("materials"):
+                    print("Processing materials row")
+                    row_data = process_row_data(form)
+                    print(f"Row data: {row_data}")
+                    for materials, price_materials, quantity, work_completed, name_work, price_work in zip(
+                            row_data['materials'], row_data['price_materials'],
+                            row_data['quantity'], row_data['work_completed'],
+                            row_data['name_work'], row_data['price_work']):
+                        sql_act_materials = "INSERT INTO act_materials (act_id, materials, price_materials, quantity) VALUES (?, ?, ?, ?)"
+                        self.__cur.execute(sql_act_materials, (act_id, materials, price_materials, quantity))
+
+                        sql_stock_minus = "INSERT INTO stock_minus (name, price_unit, quantity) VALUES (?, ?, ?)"
+                        self.__cur.execute(sql_stock_minus, (materials, price_materials, quantity))
+
+                        sql_act_work = "INSERT INTO act_work (act_id, work_completed, name_work, price_work) VALUES (?, ?, ?, ?)"
+                        self.__cur.execute(sql_act_work, (act_id, work_completed, name_work, price_work))
+
+            self.__db.commit()
+            return True
+        except sqlite3.Error as e:
+            print(f"Ошибка добавления данных в БД: {str(e)}")
+            self.__db.rollback()
+            raise Exception(f"Ошибка добавления данных в БД: {str(e)}")
+
+
         # Добавление данных в акт вып работ
 
     def addAct_foreign_key(self, data_order, data_act, number_car, materials, price_materials, quantity, work_completed,
@@ -196,3 +276,5 @@ class FDataBase:
             return False
 
         return True
+        
+"""
